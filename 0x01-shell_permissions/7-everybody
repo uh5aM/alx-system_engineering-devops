@@ -1,2 +1,2 @@
 #!/bin/bash
-chmo *111 hello
+chmo +111 hello
