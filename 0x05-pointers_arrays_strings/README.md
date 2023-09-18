@@ -1,1 +1,0 @@
-c array and strings
