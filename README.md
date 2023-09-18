@@ -1,1 +1,1 @@
-shell directory
+c array and strings
