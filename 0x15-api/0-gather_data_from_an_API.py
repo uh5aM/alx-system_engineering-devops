@@ -1,15 +1,31 @@
 #!/usr/bin/python3
-"""Returns to-do list information for a given employee ID."""
+""" 0. Input employee ID, output their todo list via API. """
+
 import requests
 import sys
 
 if __name__ == "__main__":
+    id = sys.argv[1]
+    info = requests.get('https://jsonplaceholder.typicode.com/users/{}'.format(
+        id))
+    todo = requests.get(
+        'https://jsonplaceholder.typicode.com/todos?userId={}'.format(id))
 
-    url = "https://jsonplaceholder.typicode.com/"
-    user = requests.get(url + "users/{}".format(sys.argv[1])).json()
-    todos = requests.get(url + "todos", params={"userId": sys.argv[1]}).json()
+    infod = info.json()
+    todod = todo.json()
 
-    completed = [t.get("title") for t in todos if t.get("completed") is True]
-    print("Employee {} is done with tasks({}/{}):".format(
-        user.get("name"), len(completed), len(todos)))
-    [print("\t {}".format(c)) for c in completed]
+    name = infod.get('name')
+    tasks = len(todod)
+
+    count = 0
+    for comp in todod:
+        finished = comp.get('completed')
+        if finished:
+            count += 1
+
+    print('Employee {} is done with tasks({}/{}):'.format(name, count, tasks))
+    for task in todod:
+        completed = task.get('completed')
+        if completed:
+            title = task.get('title')
+            print("\t {}".format(title))

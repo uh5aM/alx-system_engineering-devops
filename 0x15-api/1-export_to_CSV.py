@@ -1,19 +1,44 @@
 #!/usr/bin/python3
-"""Returns to-do list information for a given employee ID."""
+""" 1. Input employee ID, output info to CSV file. """
+
 import csv
 import requests
 import sys
 
 if __name__ == "__main__":
+    id = sys.argv[1]
+    info = requests.get('https://jsonplaceholder.typicode.com/users/{}'.format(
+        id))
+    todo = requests.get(
+        'https://jsonplaceholder.typicode.com/todos?userId={}'.format(id))
 
-    user_id = sys.argv[1]
-    url = "https://jsonplaceholder.typicode.com/"
-    user = requests.get(url + "users/{}".format(user_id)).json()
-    username = user.get("username")
-    todos = requests.get(url + "todos", params={"userId": user_id}).json()
+    infod = info.json()
+    todod = todo.json()
 
-    with open("{}.csv".format(user_id), "w", newline="") as csvfile:
-        writer = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
-        [writer.writerow(
-            [user_id, username, t.get("completed"), t.get("title")]
-        ) for t in todos]
+    name = infod.get('name')
+    user_name = infod.get('username')
+    tasks = len(todod)
+
+    count = 0
+    for comp in todod:
+        finished = comp.get('completed')
+        if finished:
+            count += 1
+
+    # print('Employee {} is done with tasks({}/{}):'.format(
+    #     name, count, tasks))
+    # for task in todod:
+    #     completed = task.get('completed')
+    #     if completed:
+    #         title = task.get('title')
+    #         print("\t {}".format(title))
+
+    with open('{}.csv'.format(id), 'w') as emp_tasks:
+        emp_writer = csv.writer(emp_tasks, delimiter=',', quotechar='"',
+                                quoting=csv.QUOTE_ALL)
+        for task in todod:
+            uid = task.get('userId')
+            comp = task.get('completed')
+            title = task.get('title')
+            write_list = [uid, user_name, comp, title]
+            emp_writer.writerow(write_list)
