@@ -1,47 +1,39 @@
-s script will return the number of subscribers associated with
-a subreddit
-"""
-import json
+#!/usr/bin/python3
+'''
+Recursive function that queries the Reddit API
+and returns a list containing the
+titles of all hot articles for a given subreddit.
+'''
+import itertools
 import requests
-from sys import argv
 
 
-def get_titles(hot_list):
-    """extracts the title from list of"""
-    if hot_list:
-        return [post['data'].get('title') for post in hot_list]
-    return None
+def recurse(subreddit, hot_list=[], after=None, count=0):
+    '''
+    Recursivly return list count
+    of hot articles
+    '''
 
+    url = 'https://www.reddit.com/r/{}/hot.json'.format(subreddit)
+    user_agent = 'reddit_user'
 
-def recurse(subreddit, hot_list=[]):
-    """Method get the number of users subscribed to a subreddit
+    if after:
+        url += '?after={}'.format(after)
+    headers = {'User-Agent': user_agent}
+    req = requests.get(url, headers=headers, allow_redirects=False)
 
-    subreddit (Str) - subreddit to check
-
-    Returns - number of users (INT) else 0 (INT) if not subreddit is found
-    """
-    try:
-        h = {'user-agent': 'martin', 'allow_redirects': 'false'}
-        if type(subreddit) is tuple:
-            url = "https://www.reddit.com/r/{}/hot.json".format(subreddit[0])
-            p = {'limit': 100, 'after': subreddit[1]}
-            subreddit = subreddit[0]
-        else:
-            url = "https://www.reddit.com/r/{}/hot.json".format(subreddit)
-            p = {'limit': 100}
-        req = requests.get(url, headers=h, params=p)
-        data = req.json().get('data', None)
-        if req is None:
-            return None
-        elif data.get('after', None) is not None:
-            sr = (subreddit, data.get('after'))
-            recurse(sr, hot_list)
-
-        hot_list += get_titles(data.get('children', None))
-        return hot_list
-    except Exception as e:
+    if req.status_code != 200:
         return None
 
+    data = req.json()['data']
 
-if __name__ == "__main__":
-    pass
+    posts = data['children']
+    for post in posts:
+        count += 1
+        hot_list.append(post['data']['title'])
+
+    after = data['after']
+    if after is not None:
+        return recurse(subreddit, hot_list, after, count)
+    else:
+        return hot_list
